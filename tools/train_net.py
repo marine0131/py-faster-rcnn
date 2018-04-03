@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+#-*- coding:utf-8 -
 # --------------------------------------------------------
 # Fast R-CNN
 # Copyright (c) 2015 Microsoft
@@ -33,7 +33,7 @@ def parse_args():
                         default=None, type=str)
     parser.add_argument('--iters', dest='max_iters',
                         help='number of iterations to train',
-                        default=40000, type=int)
+                        default=4000, type=int)
     parser.add_argument('--weights', dest='pretrained_model',
                         help='initialize with pretrained model weights',
                         default=None, type=str)
@@ -106,7 +106,7 @@ if __name__ == '__main__':
 
     output_dir = get_output_dir(imdb)
     print 'Output will be saved to `{:s}`'.format(output_dir)
-
-    train_net(args.solver, roidb, output_dir,
-              pretrained_model=args.pretrained_model,
-              max_iters=args.max_iters)
+    with open("peizhi.txt","r") as f:
+        max_iters = f.readline().strip('\n') #读取全部内容
+    print max_iters
+    train_net(args.solver, roidb, output_dir, pretrained_model=args.pretrained_model,max_iters=max_iters)

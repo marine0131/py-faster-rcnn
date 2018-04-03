@@ -14,24 +14,25 @@ See README.md for installation instructions before running.
 """
 
 import _init_paths
-import matplotlib
-matplotlib.use('Agg')
 from fast_rcnn.config import cfg
 from fast_rcnn.test import im_detect
 from fast_rcnn.nms_wrapper import nms
 from utils.timer import Timer
-
+#import matplotlib
+#matplotlib.use('Agg')
+#from matplotlib.pyplot import plot,savefig
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.io as sio
 import caffe, os, sys, cv2
 import argparse
-from bottle import route, run
 DEBUG=0
 CLASSES = ('__background__',
            'red_on', 'red_off', 'yellow_on', 'yellow_off',
-           'green_on', 'green_off', 'white_on', 'white_off',
-	   'grey_on', 'grey_off')
+           'green_on', 'green_off', 'car', 'cat', 'chair',
+           'cow', 'diningtable', 'dog', 'horse',
+           'motorbike', 'person', 'pottedplant',
+           'sheep', 'sofa', 'train', 'tvmonitor')
 
 NETS = {'vgg16': ('VGG16',
                   'VGG16_faster_rcnn_final.caffemodel'),
@@ -176,15 +177,10 @@ def demo(net, image_name):
 			  'p({} | box) >= {:.1f}').format(image_name, cls,
 			   CONF_THRESH),
 			   fontsize=14)
-
-	    #plt.axis('off')
-	    #plt.tight_layout()
-	    #plt.draw()
-    x = np.random.randn(60)
-    y = np.random.randn(60)
-
-    plt.scatter(x, y, s=20)
-    plt.savefig('/opt/gxxj_robot/upload/image/'+image_name)
+	    plt.axis('off')
+	    plt.tight_layout()
+	    plt.draw()
+            #savefig('/home/wsy/trainnew/py-faster-rcnn/tools/test/MyFig.jpg')
 def parse_args():
     """Parse input arguments."""
     parser = argparse.ArgumentParser(description='Faster R-CNN demo')
@@ -200,10 +196,7 @@ def parse_args():
 
     return args
 
-#if __name__ == '__main__':
-
-@route('/')                               
-def index():
+if __name__ == '__main__':
     cfg.TEST.HAS_RPN = True  # Use RPN for proposals
 
     args = parse_args()
@@ -235,6 +228,6 @@ def index():
     for im_name in im_names:
         print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
         print 'Demo for {}'.format(im_name)
-        demo(net, im_name)                      
-                                         
-run(host='192.168.10.252', port=6666)
+        demo(net, im_name)
+
+    plt.show()

@@ -30,8 +30,10 @@ from bottle import route, run
 DEBUG=0
 CLASSES = ('__background__',
            'red_on', 'red_off', 'yellow_on', 'yellow_off',
-           'green_on', 'green_off', 'white_on', 'white_off',
-	   'grey_on', 'grey_off')
+           'green_on', 'green_off', 'car', 'cat', 'chair',
+           'cow', 'diningtable', 'dog', 'horse',
+           'motorbike', 'person', 'pottedplant',
+           'sheep', 'sofa', 'train', 'tvmonitor')
 
 NETS = {'vgg16': ('VGG16',
                   'VGG16_faster_rcnn_final.caffemodel'),
@@ -77,6 +79,8 @@ def demo_1(net, image_name):
     # Load the demo image
     im_file = './test/'+image_name
     im = cv2.imread(im_file)
+
+    
 
     # Detect all object classes and regress object bounds
     timer = Timer()
@@ -167,10 +171,12 @@ def demo(net, image_name):
 	                      bbox[3] - bbox[1], fill=False,
 	                      edgecolor='red', linewidth=3.5)
 	        )
-	    ax.text(bbox[0], bbox[1] - 2,
-	            '{:s} {:.3f}'.format(cls, score),
-	            bbox=dict(facecolor='blue', alpha=0.5),
-	            fontsize=14, color='white')
+	    #ax.text(bbox[0], bbox[1] - 2,
+	    #        '{:s} {:.3f}'.format(cls, score),
+	    #        bbox=dict(facecolor='blue', alpha=0.5),
+	    #        fontsize=14, color='white')
+	    cls_str = str(cls).split('_')[1]
+	    ax.text(bbox[0], bbox[1]-2, '{:s}'.format(cls_str), bbox=dict(facecolor='blue', alpha=0.5), fontsize=13, color='white')
 
 	    ax.set_title(('{} detections with '
 			  'p({} | box) >= {:.1f}').format(image_name, cls,
@@ -185,6 +191,11 @@ def demo(net, image_name):
 
     plt.scatter(x, y, s=20)
     plt.savefig('/opt/gxxj_robot/upload/image/'+image_name)
+    print('***********  iamge Name ******** is :'+image_name)
+    #os.remove(im_file)
+    del im, fig, ax, keep, dets
+    plt.close()
+    
 def parse_args():
     """Parse input arguments."""
     parser = argparse.ArgumentParser(description='Faster R-CNN demo')
@@ -235,6 +246,7 @@ def index():
     for im_name in im_names:
         print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
         print 'Demo for {}'.format(im_name)
-        demo(net, im_name)                      
+        demo(net, im_name)    
+    del net, im                  
                                          
-run(host='192.168.10.252', port=6666)
+run(host='192.168.0.252', port=6666)
