@@ -1,0 +1,2 @@
+raw_image start: 006600
+crop_image start: 000102

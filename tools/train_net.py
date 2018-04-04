@@ -19,6 +19,23 @@ import argparse
 import pprint
 import numpy as np
 import sys
+import os
+
+LIGHT_CLASSES = ('__background__',
+                 'red_on', 'red_off', 'yellow_on', 'yellow_off', 'green_on', 'green_off')
+BG_CLASSES = ('__background__',
+              'bg')
+NUM_CLASSES = ('__background__',
+               'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'zero')
+
+DEVKIT_DIR = {'light': '../data/VOCdevkit2007_light/',
+              'bg': '../data/VOCdevkit2007_bg/',
+              'num': '../data/VOCdevkit2007_num/'}
+
+OUTPUT_DIR = {'light': '../output/faster_rcnn_end2end/voc_2007_trainval/light/',
+              'bg': '../output/faster_rcnn_end2end/voc_2007_trainval/bg/',
+              'num': '../output/faster_rcnn_end2end/voc_2007_trainval/num/'}
+
 
 def parse_args():
     """
@@ -57,24 +74,26 @@ def parse_args():
     args = parser.parse_args()
     return args
 
-def combined_roidb(imdb_names):
-    def get_roidb(imdb_name):
-        imdb = get_imdb(imdb_name)
+
+def combined_roidb(imdb_names, devkit_path, CLASSES):
+    def get_roidb(imdb_name, devkit_path, CLASSES):
+        imdb = get_imdb(imdb_name, devkit_path, CLASSES)
         print 'Loaded dataset `{:s}` for training'.format(imdb.name)
         imdb.set_proposal_method(cfg.TRAIN.PROPOSAL_METHOD)
         print 'Set proposal method: {:s}'.format(cfg.TRAIN.PROPOSAL_METHOD)
         roidb = get_training_roidb(imdb)
         return roidb
 
-    roidbs = [get_roidb(s) for s in imdb_names.split('+')]
+    roidbs = [get_roidb(s, devkit_path, CLASSES) for s in imdb_names.split('+')]
     roidb = roidbs[0]
     if len(roidbs) > 1:
         for r in roidbs[1:]:
             roidb.extend(r)
         imdb = datasets.imdb.imdb(imdb_names)
     else:
-        imdb = get_imdb(imdb_names)
+        imdb = get_imdb(imdb_names, devkit_path, CLASSES)
     return imdb, roidb
+
 
 if __name__ == '__main__':
     args = parse_args()
@@ -101,12 +120,37 @@ if __name__ == '__main__':
     caffe.set_mode_gpu()
     caffe.set_device(args.gpu_id)
 
-    imdb, roidb = combined_roidb(args.imdb_name)
+    # customized parameter
+    with open("trainning_config.txt", "r") as f:
+        class_type = f.readline().split(':')[-1].strip('\n').strip()
+        max_iters = int(f.readline().split(':')[-1].strip('\n').strip())
+
+    devkit_dir = DEVKIT_DIR[class_type]
+    output_dir = OUTPUT_DIR[class_type]
+
+    # choose class
+    CLASSES = None
+    if class_type == 'light':
+        CLASSES = LIGHT_CLASSES
+    elif class_type == 'bg':
+        CLASSES = BG_CLASSES
+    elif class_type == 'num':
+        CLASSES = NUM_CLASSES
+    else:
+        print("class type does not match any CLASSES")
+
+    # devkit
+    if not devkit_dir:
+        devkit_dir = None
+
+    # get imdb and roidb
+    imdb, roidb = combined_roidb(args.imdb_name, devkit_dir, CLASSES)
     print '{:d} roidb entries'.format(len(roidb))
 
-    output_dir = get_output_dir(imdb)
-    print 'Output will be saved to `{:s}`'.format(output_dir)
-    with open("peizhi.txt","r") as f:
-        max_iters = f.readline().strip('\n') #读取全部内容
-    print max_iters
-    train_net(args.solver, roidb, output_dir, pretrained_model=args.pretrained_model,max_iters=max_iters)
+    if not output_dir:
+        output_dir = get_output_dir(imdb)
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    train_net(solver_prototxt=args.solver, roidb=roidb, output_dir=output_dir,
+              pretrained_model=args.pretrained_model, max_iters=max_iters)

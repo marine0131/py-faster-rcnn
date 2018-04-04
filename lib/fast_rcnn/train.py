@@ -40,6 +40,8 @@ class SolverWrapper(object):
                     rdl_roidb.add_bbox_regression_targets(roidb)
             print 'done'
 
+        print(solver_prototxt)
+
         self.solver = caffe.SGDSolver(solver_prototxt)
         if pretrained_model is not None:
             print ('Loading pretrained model '

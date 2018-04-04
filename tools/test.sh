@@ -1,1 +1,1 @@
-python demo1.py
+python test.py  --test_type light

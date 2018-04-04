@@ -1,0 +1,2 @@
+class: num
+max_iters: 1000
